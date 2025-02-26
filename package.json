@@ -4,7 +4,7 @@
   "description": "This project focuses on building the **server side** of a system that handles all **managerial tasks** efficiently. The system is designed to provide robust back-end functionality to support operations, data management, and seamless integration with front-end applications.",
   "main": "server.js",
   "scripts": {
-    "start": "node server",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
