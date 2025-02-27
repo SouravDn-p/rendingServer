@@ -82,6 +82,18 @@ app.get("/tasks", async (req, res) => {
   }
 });
 
+app.get("/tasks/:email", async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const tasks = await tasksCollection.find({ email }).toArray();
+    res.send(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).send({ message: "Internal server error", error });
+  }
+});
+
 /** ========== READ (GET by ID) ========= */
 app.get("/tasks/:id", async (req, res) => {
   try {
