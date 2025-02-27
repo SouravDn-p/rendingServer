@@ -36,20 +36,21 @@ const client = new MongoClient(uri, {
 });
 
 let tasksCollection;
+let activityCollection;
 
 async function connectDB() {
   try {
-    await client.connect();
+    // await client.connect();
     console.log("Connected to MongoDB successfully!");
     const db = client.db("TaskManager");
     tasksCollection = db.collection("tasks");
+    activityCollection = db.collection("activity");
   } catch (error) {
     console.error("MongoDB connection error:", error);
   }
 }
 connectDB();
 
-/** ========== WebSocket Events ========= */
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
@@ -58,7 +59,6 @@ io.on("connection", (socket) => {
   });
 });
 
-/** ========== CREATE (POST) ========= */
 app.post("/tasks", async (req, res) => {
   try {
     const task = req.body;
@@ -71,7 +71,6 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-/** ========== READ (GET) ========= */
 app.get("/tasks", async (req, res) => {
   try {
     const tasks = await tasksCollection.find().toArray();
@@ -94,7 +93,6 @@ app.get("/tasks/:email", async (req, res) => {
   }
 });
 
-/** ========== READ (GET by ID) ========= */
 app.get("/tasks/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -109,7 +107,6 @@ app.get("/tasks/:id", async (req, res) => {
   }
 });
 
-/** ========== UPDATE (PUT) ========= */
 app.put("/tasks/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -130,7 +127,6 @@ app.put("/tasks/:id", async (req, res) => {
   }
 });
 
-/** ========== DELETE (DELETE) ========= */
 app.delete("/tasks/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -148,12 +144,34 @@ app.delete("/tasks/:id", async (req, res) => {
   }
 });
 
-/** ========== Home Route ========= */
+app.get("/activity/:email", async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const tasks = await activityCollection.find({ email }).toArray();
+    res.send(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).send({ message: "Internal server error", error });
+  }
+});
+
+app.post("/activity", async (req, res) => {
+  try {
+    const task = req.body;
+    const result = await activityCollection.insertOne(task);
+    io.emit("taskUpdated");
+    res.status(201).send({ message: "Task added successfully", result });
+  } catch (error) {
+    console.error("Error adding task:", error);
+    res.status(500).send({ message: "Internal server error", error });
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Task Manager server is running");
 });
 
-/** ========== Start Server ========= */
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
